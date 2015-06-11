@@ -23,11 +23,8 @@ We welcome [contributions](CONTRIBUTING.md) to this guide.
 
 * [Foundations](#foundations)
   *  [Separate Concerns](#separate-concerns)
-  *  [Require Secure Connections](#require-secure-connections)
   *  [Require Versioning in the Accepts Header](#require-versioning-in-the-accepts-header)
-  *  [Support ETags for Caching](#support-etags-for-caching)
   *  [Provide Request-Ids for Introspection](#provide-request-ids-for-introspection)
-  *  [Divide Large Responses Across Requests with Ranges](#divide-large-responses-across-requests-with-ranges)
 * [Requests](#requests)
   *  [Accept serialized JSON in request bodies](#accept-serialized-json-in-request-bodies)
   *  [Use consistent path formats](#use-consistent-path-formats)
@@ -42,14 +39,11 @@ We welcome [contributions](CONTRIBUTING.md) to this guide.
   *  [Use UTC times formatted in ISO8601](#use-utc-times-formatted-in-iso8601)
   *  [Nest foreign key relations](#nest-foreign-key-relations)
   *  [Generate structured errors](#generate-structured-errors)
-  *  [Show rate limit status](#show-rate-limit-status)
   *  [Keep JSON minified in all responses](#keep-json-minified-in-all-responses)
 * [Artifacts](#artifacts)
   *  [Provide machine-readable JSON schema](#provide-machine-readable-json-schema)
   *  [Provide human-readable docs](#provide-human-readable-docs)
   *  [Provide executable examples](#provide-executable-examples)
-  *  [Describe stability](#describe-stability)
-* [Translations](#translations)
 
 ### Foundations
 
