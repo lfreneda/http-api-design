@@ -65,21 +65,6 @@ contents and headers to communicate metadata. Query params may be used as a
 means to pass header information also in edge cases, but headers are preferred
 as they are more flexible and can convey more diverse information.
 
-#### Require Secure Connections
-
-Require secure connections with TLS to access the API, without exception.
-It’s not worth trying to figure out or explain when it is OK to use TLS
-and when it’s not. Just require TLS for everything.
-
-Ideally, simply reject any non-TLS requests by not responding to requests for
-http or port 80 to avoid any insecure data exchange. In environments where this
-is not possible, respond with `403 Forbidden`.
-
-Redirects are discouraged since they allow sloppy/bad client behaviour without
-providing any clear gain.  Clients that rely on redirects double up on
-server traffic and render TLS useless since sensitive data will already
- have been exposed during the first call.
-
 #### Require Versioning in the Accepts Header
 
 Versioning and the transition between versions can be one of the more
@@ -97,26 +82,11 @@ metadata, using the `Accept` header with a custom content type, e.g.:
 Accept: application/vnd.heroku+json; version=3
 ```
 
-#### Support ETags for Caching
-
-Include an `ETag` header in all responses, identifying the specific
-version of the returned resource. This allows users to cache resources
-and use requests with this value in the `If-None-Match` header to determine
-if the cache should be updated.
-
 #### Provide Request-Ids for Introspection
 
 Include a `Request-Id` header in each API response, populated with a
 UUID value. By logging these values on the client, server and any backing
 services, it provides a mechanism to trace, diagnose and debug requests.
-
-#### Divide Large Responses Across Requests with Ranges
-
-Large responses should be broken across multiple requests using `Range` headers
-to specify when more data is available and how to retrieve it. See the
-[Heroku Platform API discussion of Ranges](https://devcenter.heroku.com/articles/platform-api-reference#ranges)
-for the details of request and response headers, status codes, limits,
-ordering, and iteration.
 
 ### Requests
 
@@ -161,7 +131,7 @@ them under a standard `actions` prefix, to clearly delineate them:
 e.g.
 
 ```
-/runs/{run_id}/actions/stop
+/runs/{runId}/actions/stop
 ```
 
 #### Downcase paths and attributes
@@ -178,7 +148,7 @@ Downcase attributes as well, but use underscore separators so that
 attribute names can be typed without quotes in JavaScript, e.g.:
 
 ```
-service_class: "first"
+serviceClass: "first"
 ```
 
 #### Support non-id dereferencing for convenience
@@ -189,7 +159,7 @@ app name, but that app may be identified by a UUID. In these cases you
 may want to accept both an id or name, e.g.:
 
 ```bash
-$ curl https://service.com/apps/{app_id_or_name}
+$ curl https://service.com/apps/{appId_or_name}
 $ curl https://service.com/apps/97addcf0-c182
 $ curl https://service.com/apps/www-prod
 ```
@@ -202,7 +172,7 @@ In data models with nested parent/child resource relationships, paths
 may become deeply nested, e.g.:
 
 ```
-/orgs/{org_id}/apps/{app_id}/dynos/{dyno_id}
+/orgs/{orgId}/apps/{appId}/dynos/{dynoId}
 ```
 
 Limit nesting depth by preferring to locate resources at the root
@@ -210,11 +180,11 @@ path. Use nesting to indicate scoped collections. For example, for the
 case above where a dyno belongs to an app belongs to an org:
 
 ```
-/orgs/{org_id}
-/orgs/{org_id}/apps
-/apps/{app_id}
-/apps/{app_id}/dynos
-/dynos/{dyno_id}
+/orgs/{orgId}
+/orgs/{orgId}/apps
+/apps/{appId}
+/apps/{appId}/dynos
+/dynos/{dynoId}
 ```
 
 ### Responses
@@ -264,10 +234,10 @@ HTTP/1.1 200 OK
 Content-Type: application/json;charset=utf-8
 ...
 {
-  "created_at": "2012-01-01T12:00:00Z",
+  "createdAt": "2012-01-01T12:00:00Z",
   "hostname": "subdomain.example.com",
   "id": "01234567-89ab-cdef-0123-456789abcdef",
-  "updated_at": "2012-01-01T12:00:00Z"
+  "updatedAt": "2012-01-01T12:00:00Z"
 }
 ```
 
@@ -299,14 +269,14 @@ Render UUIDs in downcased `8-4-4-4-12` format, e.g.:
 
 #### Provide standard timestamps
 
-Provide `created_at` and `updated_at` timestamps for resources by default,
+Provide `createdAt` and `updatedAt` timestamps for resources by default,
 e.g:
 
 ```javascript
 {
   // ...
-  "created_at": "2012-01-01T12:00:00Z",
-  "updated_at": "2012-01-01T13:00:00Z",
+  "createdAt": "2012-01-01T12:00:00Z",
+  "updatedAt": "2012-01-01T13:00:00Z",
   // ...
 }
 ```
@@ -320,7 +290,7 @@ Accept and return times in UTC only. Render times in ISO8601 format,
 e.g.:
 
 ```
-"finished_at": "2012-01-01T12:00:00Z"
+"finishedAt": "2012-01-01T12:00:00Z"
 ```
 
 #### Nest foreign key relations
@@ -342,7 +312,7 @@ Instead of e.g.:
 ```javascript
 {
   "name": "service-production",
-  "owner_id": "5d8201b0...",
+  "ownerId": "5d8201b0...",
   // ...
 }
 ```
@@ -385,16 +355,6 @@ HTTP/1.1 429 Too Many Requests
 Document your error format and the possible error `id`s that clients may
 encounter.
 
-#### Show rate limit status
-
-Rate limit requests from clients to protect the health of the service
-and maintain high service quality for other clients. You can use a
-[token bucket algorithm](http://en.wikipedia.org/wiki/Token_bucket) to
-quantify request limits.
-
-Return the remaining number of request tokens with each request in the
-`RateLimit-Remaining` response header.
-
 #### Keep JSON minified in all responses
 
 Extra whitespace adds needless response size to requests, and many
@@ -402,7 +362,7 @@ clients for human consumption will automatically "prettify" JSON
 output. It is best to keep JSON responses minified e.g.:
 
 ```json
-{"beta":false,"email":"alice@heroku.com","id":"01234567-89ab-cdef-0123-456789abcdef","last_login":"2012-01-01T12:00:00Z","created_at":"2012-01-01T12:00:00Z","updated_at":"2012-01-01T12:00:00Z"}
+{"beta":false,"email":"alice@heroku.com","id":"01234567-89ab-cdef-0123-456789abcdef","lastLogin":"2012-01-01T12:00:00Z","createdAt":"2012-01-01T12:00:00Z","updatedAt":"2012-01-01T12:00:00Z"}
 ```
 
 Instead of e.g.:
@@ -412,9 +372,9 @@ Instead of e.g.:
   "beta": false,
   "email": "alice@heroku.com",
   "id": "01234567-89ab-cdef-0123-456789abcdef",
-  "last_login": "2012-01-01T12:00:00Z",
-  "created_at": "2012-01-01T12:00:00Z",
-  "updated_at": "2012-01-01T12:00:00Z"
+  "lastLogin": "2012-01-01T12:00:00Z",
+  "createdAt": "2012-01-01T12:00:00Z",
+  "updatedAt": "2012-01-01T12:00:00Z"
 }
 ```
 
@@ -463,26 +423,3 @@ $ curl -is https://$TOKEN@service.com/users
 
 If you use [prmd](https://github.com/interagent/prmd) to generate Markdown
 docs, you will get examples for each endpoint for free.
-
-#### Describe stability
-
-Describe the stability of your API or its various endpoints according to
-its maturity and stability, e.g. with prototype/development/production
-flags.
-
-See the [Heroku API compatibility policy](https://devcenter.heroku.com/articles/api-compatibility-policy)
-for a possible stability and change management approach.
-
-Once your API is declared production-ready and stable, do not make
-backwards incompatible changes within that API version. If you need to
-make backwards-incompatible changes, create a new API with an
-incremented version number.
-
-
-### Translations
- * [Spanish version](https://github.com/jmnavarro/http-api-design) (based on [2a74f45](https://github.com/interagent/http-api-design/commit/2a74f45b9afaf6c951352f36c3a4e1b0418ed10b)), by [@jmnavarro](https://github.com/jmnavarro/)
- * [Korean version](https://github.com/yoondo/http-api-design) (based on [f38dba6](https://github.com/interagent/http-api-design/commit/f38dba6fd8e2b229ab3f09cd84a8828987188863)), by [@yoondo](https://github.com/yoondo/)
- * [Simplified Chinese version](https://github.com/ZhangBohan/http-api-design-ZH_CN) (based on [337c4a0](https://github.com/interagent/http-api-design/commit/337c4a05ad08f25c5e232a72638f063925f3228a)), by [@ZhangBohan](https://github.com/ZhangBohan/)
- * [Traditional Chinese version](https://github.com/kcyeu/http-api-design) (based on [232f8dc](https://github.com/interagent/http-api-design/commit/232f8dc6a941d0b25136bf64998242dae5575f66)), by [@kcyeu](https://github.com/kcyeu/)
- * [Turkish version](https://github.com/hkulekci/http-api-design/tree/master/tr) (based on [c03842f](https://github.com/interagent/http-api-design/commit/c03842fda80261e82860f6dc7e5ccb2b5d394d51)), by [@hkulekci](https://github.com/hkulekci/)
-
